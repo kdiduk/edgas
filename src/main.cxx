@@ -4,6 +4,8 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "config.hxx"
+
 
 int main(int argc, char* argv[])
 {
@@ -12,45 +14,19 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    auto fileName = std::string(argv[1]);
-    if (!std::filesystem::exists(fileName)) {
-        std::cout << fileName << " does not exist" << std::endl;
+    auto config = edgas::Config::from_file(argv[1]);
+    if (!config) {
+        std::cout << "failed to load config" << std::endl;
         return 1;
     }
 
-    YAML::Node configFileNode;
-    try {
-        configFileNode = YAML::LoadFile(fileName);
-    }
-    catch (const YAML::BadFile& ex) {
-        std::cout << "failed to load config file " << fileName << ": " << ex.what() << std::endl;
-        return 1;
-    }
-
-    std::cout << "config file " << fileName << " loaded successfully" << std::endl;
-
-    YAML::Node particlesNode = configFileNode["particles"];
-    if (!particlesNode) {
-        std::cout << "missing particles node in config file " << fileName << std::endl;
-        return 1;
-    }
-
-    if (auto&& countNode = particlesNode["count"]) {
-        std::cout << "particles count: " << countNode.as<int>() << std::endl;
-    }
-    else {
-        std::cout << "missing particles count in config file " << fileName << std::endl;
-    }
-
-    if (auto&& radiusNode = particlesNode["radius"]) {
-        std::cout << "particles radius: " << radiusNode.as<double>() << std::endl;
-    }
-    else {
-        std::cout << "missing particles radius in config file " << fileName << std::endl;
-    }
-
-    std::cout << "Hello, World!" << std::endl;
-
+    std::cout << "config loaded successfully:" << std::endl;
+    std::cout << "  particle count: " << config->particleCount << std::endl;
+    std::cout << "  particle radius: " << config->particleRadius << std::endl;
+    std::cout << "  particle mass: " << config->particleMass << std::endl;
+    std::cout << "  dimension x: " << config->dimensionX << std::endl;
+    std::cout << "  dimension y: " << config->dimensionY << std::endl;
+    
     return 0;
 }
 

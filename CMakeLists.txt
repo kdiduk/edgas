@@ -30,6 +30,7 @@ add_executable(edgas)
 target_sources(edgas
   PRIVATE
     src/main.cxx
+    src/config.cxx
 )
 
 enable_testing()
