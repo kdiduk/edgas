@@ -1,0 +1,6 @@
+particles:
+  count: 100
+  radius: 0.2
+dimensions:
+  x: 10
+  y: 10
