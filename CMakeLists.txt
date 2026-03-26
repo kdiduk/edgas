@@ -31,6 +31,8 @@ target_sources(edgas
   PRIVATE
     src/main.cxx
     src/config.cxx
+    src/simulator.cxx
+    src/snapshot_writer.cxx
 )
 
 enable_testing()
