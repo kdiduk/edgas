@@ -33,6 +33,7 @@ target_sources(edgas
     src/config.cxx
     src/simulator.cxx
     src/snapshot_writer.cxx
+    src/collisions.cxx
 )
 
 enable_testing()
@@ -40,9 +41,13 @@ enable_testing()
 add_executable(
   edgas_test
   test/edgas_test.cxx
+  test/collisions_test.cxx
+  src/collisions.cxx
 )
 
 target_link_libraries(edgas PUBLIC yaml-cpp::yaml-cpp)
+
+target_include_directories(edgas_test PUBLIC src)
 
 target_link_libraries(
   edgas_test

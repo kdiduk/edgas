@@ -11,6 +11,7 @@ namespace edgas
         double vy;
         double radius;
         double mass;
+        double t = 0.0; // Local time of the particle.
     };
 }
 
