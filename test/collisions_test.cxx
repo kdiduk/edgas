@@ -35,4 +35,14 @@ TEST(timeToParticleCollision,
     EXPECT_DOUBLE_EQ(time, 2.0);
 }
 
+
+TEST(timeToParticleCollision, 
+        ReturnsNoCollision_WhenParticlesAreOrthogonalAndMovingTowardsEachOtherAndDontTouch) {
+    Particle p1{ .x = 0.5, .y = 0, .vx = 1, .vy = 0, .radius = 0.5, .mass = 1, .t = 0.0 };
+    Particle p2{ .x = 2, .y = 3, .vx = 0, .vy = -1, .radius = 0.5, .mass = 1, .t = 0.0 };
+
+    auto time = collisions::timeToParticleCollision(p1, p2);
+    EXPECT_DOUBLE_EQ(time, std::numeric_limits<double>::infinity());
+}
+
 // EOF
