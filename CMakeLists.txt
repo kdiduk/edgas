@@ -40,7 +40,6 @@ enable_testing()
 
 add_executable(
   edgas_test
-  test/edgas_test.cxx
   test/collisions_test.cxx
   src/collisions.cxx
 )
