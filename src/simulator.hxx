@@ -10,7 +10,7 @@
 
 namespace edgas
 {
-    class Config;
+    struct Config;
 
     class Simulator
     {

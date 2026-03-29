@@ -6,7 +6,7 @@
 
 namespace edgas
 {
-    class Particle;
+    struct Particle;
 
     class SnapshotWriter {
     public:
