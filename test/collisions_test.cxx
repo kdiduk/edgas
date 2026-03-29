@@ -45,4 +45,13 @@ TEST(timeToParticleCollision,
     EXPECT_DOUBLE_EQ(time, std::numeric_limits<double>::infinity());
 }
 
+TEST(timeToParticleCollision, 
+        particlesHaveDistinctLocalTimesAndShouldCollide) {
+    Particle p1{ .x = 0, .y = 0, .vx = 1, .vy = 0, .radius = 0.5, .mass = 1, .t = 1.0 };
+    Particle p2{ .x = 4, .y = 0, .vx = -1, .vy = 0, .radius = 0.5, .mass = 1, .t = 2.0 };
+
+    double time = collisions::timeToParticleCollision(p1, p2);
+    EXPECT_DOUBLE_EQ(time, 3.0); // p2.t + 1.0
+}
+
 // EOF
