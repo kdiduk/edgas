@@ -54,4 +54,20 @@ TEST(timeToParticleCollision,
     EXPECT_DOUBLE_EQ(time, 3.0); // p2.t + 1.0
 }
 
+
+TEST(collideParticles,
+        particlesWithSameMassAndSpeedCollideTowardsEachOther)
+{
+    Particle p1{ .x = 0, .y = 0, .vx = 1, .vy = 0, .radius = 0.5, .mass = 1, .t = 0.0 };
+    Particle p2{ .x = 1, .y = 0, .vx = -1, .vy = 0, .radius = 0.5, .mass = 1, .t = 0.0 };
+
+    collisions::collideParticles(p1, p2);
+
+    EXPECT_NEAR(p1.vx, -1.0, 1e-8);
+    EXPECT_NEAR(p1.vy, 0.0, 1e-8);
+    
+    EXPECT_NEAR(p2.vx, 1.0, 1e-8);
+    EXPECT_NEAR(p2.vy, 0.0, 1e-8);
+}
+
 // EOF
