@@ -12,6 +12,8 @@ namespace edgas::collisions
     // of the particle with the later local time. That is, if p1.t < p2.t, 
     // the returned time is p2.t + dt.
     double timeToParticleCollision(const Particle& p1, const Particle& p2);
+
+    void collideParticles(Particle& p1, Particle& p2);
 }
 
 #endif // EDGAS_COLLISIONS_HXX
