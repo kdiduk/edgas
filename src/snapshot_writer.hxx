@@ -6,14 +6,14 @@
 
 namespace edgas
 {
-    struct Particle;
+    struct Model;
 
     class SnapshotWriter {
     public:
         SnapshotWriter(const std::string& filename);
         ~SnapshotWriter();
 
-        void writeSnapshot(double time, const Particle& particle);
+        void writeSnapshot(const Model& model);
     
     private:
         std::ofstream outFile;

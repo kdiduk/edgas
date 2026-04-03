@@ -1,36 +1,49 @@
 #include "simulator.hxx"
+#include "collisions.hxx"
 #include "config.hxx"
+#include "particle.hxx"
 #include <cmath>
+#include <iostream>
 
 
 namespace edgas
 {
     Simulator::Simulator(const Config& config)
     {
-        dimensionX = config.dimensionX;
-        dimensionY = config.dimensionY;
+        model.dimensionX = config.dimensionX;
+        model.dimensionY = config.dimensionY;
+        model.nparticles = config.particleCount;
 
-        particle.radius = config.particleRadius;
-        particle.mass = config.particleMass;
-        particle.x = dimensionX / 2.0;
-        particle.y = dimensionY / 2.0;
+        int x = 0;
+        int y = 0;
 
-        // Initialize random velocity of magnitude 1 in a random direction
-        double angle = static_cast<double>(rand()) / RAND_MAX * 2.0 * M_PI;
-        particle.vx = std::cos(angle);
-        particle.vy = std::sin(angle);
+        model.particles.resize(config.particleCount);
+        for (auto& particle: model.particles) {
+            particle.radius = config.particleRadius;
+            particle.mass = config.particleMass;
 
-        snapshotWriter.writeSnapshot(currentTime, particle);
-        findNextEvent();
+            particle.x = (x++ % model.dimensionX) + 0.5;
+            particle.y = (y++ % model.dimensionY) + 0.5;
+
+            // Initialize random velocity of magnitude 1 in a random direction
+            double angle = static_cast<double>(rand()) / RAND_MAX * 2.0 * M_PI;
+            particle.vx = std::cos(angle);
+            particle.vy = std::sin(angle);
+        }
+
+        snapshotWriter.writeSnapshot(model);
+
+        model.events.resize(config.particleCount);
+        for (int i = 0; i < model.nparticles; ++i) {
+            findNextEvent(i);
+        }
     }
 
     void Simulator::step()
     {
         processNextEvent();
-        
-        snapshotWriter.writeSnapshot(currentTime, particle);
-        
-        findNextEvent();
+
+        snapshotWriter.writeSnapshot(model);
     }
 
     const StatisticsCollector& Simulator::getStatistics() const
@@ -38,12 +51,30 @@ namespace edgas
         return statisticsCollector;
     }
 
-    void Simulator::findNextEvent()
+    void Simulator::findNextEvent(int i)
     {
+        Event wallCollisionEvent = findNextWallCollision(i);
+        Event particleCollisionEvent = findNextParticleCollision(i);
+        Event minEvent = (wallCollisionEvent.time < particleCollisionEvent.time) ? wallCollisionEvent : particleCollisionEvent;
+
+        if (minEvent.time < model.events[i].time) {
+             model.events[i] = minEvent;
+             if (minEvent.type == EventType::ParticleCollision) {
+                 int j = minEvent.otherParticle;
+                 model.events[j] = minEvent;
+                 model.events[j].otherParticle = i;
+             }
+        }
+    }
+
+    Event Simulator::findNextWallCollision(int i) const
+    {
+        const auto& particle = model.particles[i];
+
         double timeToVerticalWall = std::numeric_limits<double>::infinity();
         Wall nextWall = Wall::None;
         if (particle.vx > 0) {
-            double timeToRightWall = (dimensionX - particle.radius - particle.x) / particle.vx;
+            double timeToRightWall = (model.dimensionX - particle.radius - particle.x) / particle.vx;
             if (timeToRightWall < timeToVerticalWall) {
                 timeToVerticalWall = timeToRightWall;
                 nextWall = Wall::Right;
@@ -57,7 +88,7 @@ namespace edgas
         }
 
         if (particle.vy > 0) {
-            double timeToTopWall = (dimensionY - particle.radius - particle.y) / particle.vy;
+            double timeToTopWall = (model.dimensionY - particle.radius - particle.y) / particle.vy;
             if (timeToTopWall < timeToVerticalWall) {
                 timeToVerticalWall = timeToTopWall;
                 nextWall = Wall::Top;
@@ -70,17 +101,88 @@ namespace edgas
             }
         }
 
-        nextEvent.time = timeToVerticalWall;
-        nextEvent.wall = nextWall;
+        Event event = {};
+        event.type = EventType::WallCollision;
+        event.time = timeToVerticalWall;
+        event.wall = nextWall;
+        return event;
+    }
+
+
+    Event Simulator::findNextParticleCollision(int i) const
+    {
+        const auto& particle = model.particles[i];
+
+        Event event = {};
+        event.type = EventType::ParticleCollision;
+
+        for (int j = 0; j < model.nparticles; ++j) {
+            if (i == j) continue;
+
+            const auto& otherParticle = model.particles[j];
+            double timeToCollision = collisions::timeToParticleCollision(particle, otherParticle);
+            if (timeToCollision < event.time) {
+                event.time = timeToCollision;
+                event.otherParticle = j;
+            }
+        }
+        
+        return event;
+    }
+
+
+    int Simulator::getNextEvent() const
+    {
+        int nextEventIndex = -1;
+        double minTime = std::numeric_limits<double>::infinity();
+
+        for (int i = 0; i < model.nparticles; ++i) {
+            if (model.events[i].time < minTime) {
+                minTime = model.events[i].time;
+                nextEventIndex = i;
+            }
+        }
+
+        return nextEventIndex;
     }
 
     void Simulator::processNextEvent()
     {
-        currentTime += nextEvent.time;
-        particle.x += particle.vx * nextEvent.time;
-        particle.y += particle.vy * nextEvent.time;
+        int i = getNextEvent();
+        const auto& nextEvent = model.events[i];
+        switch (nextEvent.type) {
+            case EventType::WallCollision:
+                processNextWallCollisionEvent(i);
+                findNextEvent(i);
+                break;
+            case EventType::ParticleCollision: {
+                    int j = nextEvent.otherParticle;
+                    processNextParticleCollisionEvent(i, j);
+                    findNextEvent(i);
+                    findNextEvent(j);
+                }
+                break;
+            default:
+                std::cerr << "Unknown event type: " 
+                    << static_cast<int>(nextEvent.type) 
+                    << std::endl;
+                break;
+        }
+    }
 
-        statisticsCollector.addWallCollision(currentTime, nextEvent.wall);
+    void Simulator::processNextWallCollisionEvent(int i)
+    {
+        auto& particle = model.particles[i];
+        auto& nextEvent = model.events[i];
+
+        model.globalTime = nextEvent.time;
+        particle.x += particle.vx * (nextEvent.time - particle.t);
+        particle.y += particle.vy * (nextEvent.time - particle.t);
+        particle.t = nextEvent.time;
+
+        statisticsCollector.addWallCollision(nextEvent.wall);
+
+        model.globalTime = nextEvent.time;
 
         switch (nextEvent.wall) {
             case Wall::Left:
@@ -94,5 +196,31 @@ namespace edgas
             default:
                 break;
         }
+    }
+
+    void Simulator::processNextParticleCollisionEvent(int i, int j)
+    {
+        auto& particle1 = model.particles[i];
+        auto& particle2 = model.particles[j];
+        auto& nextEvent1 = model.events[i];
+        auto& nextEvent2 = model.events[j];
+
+        if (std::abs(nextEvent1.time - nextEvent2.time) > 1e-9) {
+            std::cerr << "Warning: invalid particle collision event" 
+                << std::endl;
+            statisticsCollector.addInvalidParticleCollision();
+            return;
+        }
+
+        model.globalTime = nextEvent1.time;
+        particle1.x += particle1.vx * (nextEvent1.time - particle1.t);
+        particle1.y += particle1.vy * (nextEvent1.time - particle1.t);
+        particle2.x += particle2.vx * (nextEvent2.time - particle2.t);
+        particle2.y += particle2.vy * (nextEvent2.time - particle2.t);
+        particle1.t = nextEvent1.time;
+        particle2.t = nextEvent2.time;
+
+        collisions::collideParticles(particle1, particle2);
+        statisticsCollector.addParticleCollision();
     }
 }

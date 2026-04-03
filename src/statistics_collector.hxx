@@ -12,8 +12,10 @@ namespace edgas
         int rightWallCollisions = 0;
         int topWallCollisions = 0;
         int bottomWallCollisions = 0;
+        int totalParticleCollisions = 0;
+        int invalidParticleCollisions = 0;
 
-        void addWallCollision(double time, Wall wall)
+        void addWallCollision(Wall wall)
         {
             totalWallCollisions++;
             switch (wall) {
@@ -34,6 +36,9 @@ namespace edgas
             }
         }
 
+        void addParticleCollision() { totalParticleCollisions++; }
+        void addInvalidParticleCollision() { invalidParticleCollisions++; }
+
         void reset()
         {
             totalWallCollisions = 0;
@@ -41,6 +46,8 @@ namespace edgas
             rightWallCollisions = 0;
             topWallCollisions = 0;
             bottomWallCollisions = 0;
+            totalParticleCollisions = 0;
+            invalidParticleCollisions = 0;
         }
     };
 }

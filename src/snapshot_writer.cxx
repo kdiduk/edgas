@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include "model.hxx"
 #include "particle.hxx"
 
 
@@ -15,7 +16,6 @@ namespace edgas
             throw std::runtime_error("Failed to open snapshot file: " + filename);
         }
 
-        outFile << "time\tx\ty\tvx\tvy\n";
         outFile.precision(10);
         outFile << std::fixed;
     }
@@ -25,9 +25,12 @@ namespace edgas
         outFile.close();
     }
 
-    void SnapshotWriter::writeSnapshot(double time, const Particle& particle)
+    void SnapshotWriter::writeSnapshot(const Model& model)
     {
-        outFile << time << "\t" << particle.x << "\t" << particle.y << "\t"
-                << particle.vx << "\t" << particle.vy << "\n";
+        outFile << model.globalTime << '\n';
+        for (const auto& particle : model.particles) {
+            outFile << particle.x << '\t' << particle.y << '\t'
+                    << particle.vx << '\t' << particle.vy << "\n\n";
+        }
     }
 }

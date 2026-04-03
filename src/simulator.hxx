@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "event.hxx"
+#include "model.hxx"
 #include "particle.hxx"
 #include "snapshot_writer.hxx"
 #include "statistics_collector.hxx"
@@ -22,14 +23,22 @@ namespace edgas
         const StatisticsCollector& getStatistics() const;
 
     private:
-        void findNextEvent();
+        void findNextEvent(int i);
+
+        Event findNextWallCollision(int i) const;
+        Event findNextParticleCollision(int i) const;
+
+        int getNextEvent() const;
+
         void processNextEvent();
 
-        int dimensionX = 0;
-        int dimensionY = 0;
-        Particle particle;
-        double currentTime = 0.0;
-        Event nextEvent;
+        void processNextWallCollisionEvent(int i);
+        void processNextParticleCollisionEvent(int i, int j);
+
+        void processWallCollision(const Event& event);
+        void processParticleCollision(const Event& event);
+
+        Model model;
         SnapshotWriter snapshotWriter{"snapshots.txt"};
         StatisticsCollector statisticsCollector;
     };

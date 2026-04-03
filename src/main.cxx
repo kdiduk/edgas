@@ -40,6 +40,8 @@ int main(int argc, char* argv[])
     std::cout << "simulation completed successfully" << std::endl;
 
     const auto& stats = simulator.getStatistics();
+    std::cout << "total particle collisions: " << stats.totalParticleCollisions << std::endl;
+    std::cout << "total invalid collisions: " << stats.invalidParticleCollisions << std::endl;
     std::cout << "total wall collisions: " << stats.totalWallCollisions << std::endl;
     std::cout << "  left wall collisions: " << stats.leftWallCollisions << std::endl;
     std::cout << "  right wall collisions: " << stats.rightWallCollisions << std::endl;

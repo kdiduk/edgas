@@ -5,6 +5,12 @@
 
 namespace edgas
 {
+    enum EventType {
+        None,
+        WallCollision,
+        ParticleCollision
+    };
+    
     enum class Wall {
         None,
         Left,
@@ -14,8 +20,10 @@ namespace edgas
     };
 
     struct Event {
+        EventType type = EventType::None;
         double time = std::numeric_limits<double>::infinity();
         Wall wall = Wall::None;
+        int otherParticle = -1;
     };
 
 }
