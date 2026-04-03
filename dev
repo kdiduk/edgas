@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+
+import subprocess
+import sys
+
+def run(cmd):
+    print(">", " ".join(cmd))
+    subprocess.check_call(cmd)
+
+if len(sys.argv) < 2:
+    print("Usage: python dev.py [conf|build|test|run]")
+    sys.exit(1)
+
+cmd = sys.argv[1]
+
+if cmd == "conf":
+    run(["cmake", "-S", ".", "-B", "build"])
+elif cmd == "build":
+    run(["cmake", "--build", "build"])
+elif cmd == "test":
+    run(["ctest", "--test-dir", "build"])
+elif cmd == "run":
+    run(["./build/edgas"])
+else:
+    print("Unknown command")
+
+# EOF
