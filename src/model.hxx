@@ -3,18 +3,20 @@
 
 #include <vector>
 
-#include "event.hxx"
 #include "particle.hxx"
 
 namespace edgas
 {
+    struct Config;
+
     struct Model {
         int dimensionX;
         int dimensionY;
         int nparticles;
         std::vector<Particle> particles;
-        std::vector<Event> events;
         double globalTime = 0.0;
+
+        Model(const Config& config);
     };
 
 } // namespace edgas

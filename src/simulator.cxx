@@ -9,31 +9,11 @@
 namespace edgas
 {
     Simulator::Simulator(const Config& config)
+        : model(config)
     {
-        model.dimensionX = config.dimensionX;
-        model.dimensionY = config.dimensionY;
-        model.nparticles = config.particleCount;
-
-        int x = 0;
-        int y = 0;
-
-        model.particles.resize(config.particleCount);
-        for (auto& particle: model.particles) {
-            particle.radius = config.particleRadius;
-            particle.mass = config.particleMass;
-
-            particle.x = (x++ % model.dimensionX) + 0.5;
-            particle.y = (y++ % model.dimensionY) + 0.5;
-
-            // Initialize random velocity of magnitude 1 in a random direction
-            double angle = static_cast<double>(rand()) / RAND_MAX * 2.0 * M_PI;
-            particle.vx = std::cos(angle);
-            particle.vy = std::sin(angle);
-        }
-
         snapshotWriter.writeSnapshot(model);
 
-        model.events.resize(config.particleCount);
+        events.resize(config.particleCount);
         for (int i = 0; i < model.nparticles; ++i) {
             findNextEvent(i);
         }
@@ -57,12 +37,12 @@ namespace edgas
         Event particleCollisionEvent = findNextParticleCollision(i);
         Event minEvent = (wallCollisionEvent.time < particleCollisionEvent.time) ? wallCollisionEvent : particleCollisionEvent;
 
-        if (minEvent.time < model.events[i].time) {
-             model.events[i] = minEvent;
+        if (minEvent.time < events[i].time) {
+             events[i] = minEvent;
              if (minEvent.type == EventType::ParticleCollision) {
                  int j = minEvent.otherParticle;
-                 model.events[j] = minEvent;
-                 model.events[j].otherParticle = i;
+                 events[j] = minEvent;
+                 events[j].otherParticle = i;
              }
         }
     }
@@ -137,8 +117,8 @@ namespace edgas
         double minTime = std::numeric_limits<double>::infinity();
 
         for (int i = 0; i < model.nparticles; ++i) {
-            if (model.events[i].time < minTime) {
-                minTime = model.events[i].time;
+            if (events[i].time < minTime) {
+                minTime = events[i].time;
                 nextEventIndex = i;
             }
         }
@@ -149,7 +129,7 @@ namespace edgas
     void Simulator::processNextEvent()
     {
         int i = getNextEvent();
-        const auto& nextEvent = model.events[i];
+        const auto& nextEvent = events[i];
         switch (nextEvent.type) {
             case EventType::WallCollision:
                 processNextWallCollisionEvent(i);
@@ -173,7 +153,7 @@ namespace edgas
     void Simulator::processNextWallCollisionEvent(int i)
     {
         auto& particle = model.particles[i];
-        auto& nextEvent = model.events[i];
+        auto& nextEvent = events[i];
 
         model.globalTime = nextEvent.time;
         particle.x += particle.vx * (nextEvent.time - particle.t);
@@ -202,8 +182,8 @@ namespace edgas
     {
         auto& particle1 = model.particles[i];
         auto& particle2 = model.particles[j];
-        auto& nextEvent1 = model.events[i];
-        auto& nextEvent2 = model.events[j];
+        auto& nextEvent1 = events[i];
+        auto& nextEvent2 = events[j];
 
         if (std::abs(nextEvent1.time - nextEvent2.time) > 1e-9) {
             std::cerr << "Warning: invalid particle collision event" 

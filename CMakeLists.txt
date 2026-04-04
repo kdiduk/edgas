@@ -36,6 +36,7 @@ target_sources(edgas
   PRIVATE
     src/main.cxx
     src/config.cxx
+    src/model.cxx
     src/simulator.cxx
     src/snapshot_writer.cxx
     src/collisions.cxx
@@ -46,7 +47,9 @@ enable_testing()
 add_executable(
   edgas_test
   test/collisions_test.cxx
+  test/model_test.cxx
   src/collisions.cxx
+  src/model.cxx
 )
 
 target_link_libraries(edgas PUBLIC yaml-cpp::yaml-cpp)
