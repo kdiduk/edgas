@@ -9,6 +9,13 @@
 using namespace edgas;
 
 
+class ModelWrapper : public Model {
+public:
+    using Model::initParticlesPositions;
+    using Model::initParticlesVelocities;
+};
+
+
 TEST(ModelConstructor, SetsDimensionsAndParticleCount) {
     Config config{ .particleCount = 4, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 10, .dimensionY = 10 };
 
@@ -96,6 +103,28 @@ TEST(ModelConstructor, InitializesParticleLocalTimeToZero) {
     for (const auto& p : model.particles) {
         EXPECT_DOUBLE_EQ(p.t, 0.0);
     }
+}
+
+TEST(initParticlesPositions, SingleParticleIsPlacedCorrectly) {
+    std::vector<Particle> particles{ Particle(0.25) };
+
+    ModelWrapper::initParticlesPositions(1, 1, particles);
+    EXPECT_DOUBLE_EQ(particles[0].x, 0.5);
+    EXPECT_DOUBLE_EQ(particles[0].y, 0.5);
+}
+
+TEST(initParticlesPositions, MultipleParticlesArePlacedInUniqueCells) {
+    std::vector<Particle> particles(4, Particle(0.25));
+
+    ModelWrapper::initParticlesPositions(2, 2, particles);
+
+    std::set<std::pair<int, int>> cells;
+    for (const auto& p : particles) {
+        int cx = static_cast<int>(p.x - 0.5);
+        int cy = static_cast<int>(p.y - 0.5);
+        cells.insert({cx, cy});
+    }
+    EXPECT_EQ(cells.size(), particles.size());
 }
 
 // EOF
