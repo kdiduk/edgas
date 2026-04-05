@@ -6,7 +6,7 @@
 
 namespace edgas
 {
-    struct Model;
+    class Model;
 
     class SnapshotWriter {
     public:

@@ -4,3 +4,16 @@ particles:
 dimensions:
   x: 10
   y: 10
+
+initialization:
+  method: random  # random | snapshot
+
+  random:
+    seed:
+      type: random
+      value: 0
+
+  snapshot:
+    file: "state.bin"
+    load_positions: true
+    load_velocities: true
