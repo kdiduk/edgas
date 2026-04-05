@@ -1,4 +1,5 @@
 #include <cmath>
+#include <set>
 
 #include <gtest/gtest.h>
 
@@ -37,15 +38,35 @@ TEST(ModelConstructor, InitializesParticleRadiusAndMass) {
     }
 }
 
-TEST(ModelConstructor, PlacesParticlesAtGridPositions) {
-    Config config{ .particleCount = 4, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 10, .dimensionY = 10 };
+TEST(ModelConstructor, PlacesParticlesAtGridCellCenters) {
+    Config config{ .particleCount = 6, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 4, .dimensionY = 3 };
 
     Model model(config);
 
-    for (int i = 0; i < config.particleCount; ++i) {
-        EXPECT_DOUBLE_EQ(model.particles[i].x, (i % config.dimensionX) + 0.5);
-        EXPECT_DOUBLE_EQ(model.particles[i].y, (i % config.dimensionY) + 0.5);
+    for (const auto& p : model.particles) {
+        double cellX = p.x - 0.5;
+        double cellY = p.y - 0.5;
+        EXPECT_NEAR(cellX, std::round(cellX), 1e-10);
+        EXPECT_NEAR(cellY, std::round(cellY), 1e-10);
+        EXPECT_GE(cellX, 0);
+        EXPECT_LT(cellX, config.dimensionX);
+        EXPECT_GE(cellY, 0);
+        EXPECT_LT(cellY, config.dimensionY);
     }
+}
+
+TEST(ModelConstructor, PlacesParticlesInUniqueCells) {
+    Config config{ .particleCount = 8, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 4, .dimensionY = 3 };
+
+    Model model(config);
+
+    std::set<std::pair<int, int>> cells;
+    for (const auto& p : model.particles) {
+        int cx = static_cast<int>(p.x - 0.5);
+        int cy = static_cast<int>(p.y - 0.5);
+        cells.insert({cx, cy});
+    }
+    EXPECT_EQ(cells.size(), static_cast<size_t>(config.particleCount));
 }
 
 TEST(ModelConstructor, InitializesVelocityWithUnitMagnitude) {
