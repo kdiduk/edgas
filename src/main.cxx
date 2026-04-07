@@ -34,20 +34,32 @@ int main(int argc, char* argv[])
     std::cout << "  dimension y: " << config->dimensionY << std::endl;
 
     edgas::Simulator simulator(*config);
-    for (int i = 0; i < 100; ++i) {
-        simulator.step();
+    std::cout << "simulator initialized successfully" << std::endl;
+
+    while (true) {
+        std::cout << "enter number of steps to simulate (or 0 to quit): ";
+        int steps = 0;
+        std::cin >> steps;
+        if (steps <= 0) {
+            break;
+        }
+
+        for (int i = 0; i < steps; i++) {
+            simulator.step();
+        }
+
+        const auto& stats = simulator.getStatistics();
+        std::cout << "total particle collisions: " << stats.totalParticleCollisions << std::endl;
+        std::cout << "total invalid collisions: " << stats.invalidParticleCollisions << std::endl;
+        std::cout << "total wall collisions: " << stats.totalWallCollisions << std::endl;
+        std::cout << "  left wall collisions: " << stats.leftWallCollisions << std::endl;
+        std::cout << "  right wall collisions: " << stats.rightWallCollisions << std::endl;
+        std::cout << "  top wall collisions: " << stats.topWallCollisions << std::endl;
+        std::cout << "  bottom wall collisions: " << stats.bottomWallCollisions << std::endl;
+
     }
     std::cout << "simulation completed successfully" << std::endl;
 
-    const auto& stats = simulator.getStatistics();
-    std::cout << "total particle collisions: " << stats.totalParticleCollisions << std::endl;
-    std::cout << "total invalid collisions: " << stats.invalidParticleCollisions << std::endl;
-    std::cout << "total wall collisions: " << stats.totalWallCollisions << std::endl;
-    std::cout << "  left wall collisions: " << stats.leftWallCollisions << std::endl;
-    std::cout << "  right wall collisions: " << stats.rightWallCollisions << std::endl;
-    std::cout << "  top wall collisions: " << stats.topWallCollisions << std::endl;
-    std::cout << "  bottom wall collisions: " << stats.bottomWallCollisions << std::endl;
-    
     return 0;
 }
 
