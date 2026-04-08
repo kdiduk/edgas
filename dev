@@ -20,7 +20,7 @@ elif cmd == "build":
 elif cmd == "test":
     run(["ctest", "--test-dir", "build"])
 elif cmd == "run":
-    run(["./build/edgas"])
+    run(["./build/edgas", "./resources/config.yaml"])
 else:
     print("Unknown command")
 
