@@ -37,13 +37,11 @@ namespace edgas
         Event particleCollisionEvent = findNextParticleCollision(i);
         Event minEvent = (wallCollisionEvent.time < particleCollisionEvent.time) ? wallCollisionEvent : particleCollisionEvent;
 
-        if (minEvent.time < events[i].time) {
-             events[i] = minEvent;
-             if (minEvent.type == EventType::ParticleCollision) {
-                 int j = minEvent.otherParticle;
-                 events[j] = minEvent;
-                 events[j].otherParticle = i;
-             }
+        events[i] = minEvent;
+        if (minEvent.type == EventType::ParticleCollision) {
+            int j = minEvent.otherParticle;
+            events[j] = minEvent;
+            events[j].otherParticle = i;
         }
     }
 
@@ -51,39 +49,39 @@ namespace edgas
     {
         const auto& particle = model.particles[i];
 
-        double timeToVerticalWall = std::numeric_limits<double>::infinity();
+        double minTime = std::numeric_limits<double>::infinity();
         Wall nextWall = Wall::None;
         if (particle.vx > 0) {
             double timeToRightWall = (model.dimensionX - particle.radius - particle.x) / particle.vx;
-            if (timeToRightWall < timeToVerticalWall) {
-                timeToVerticalWall = timeToRightWall;
+            if (timeToRightWall < minTime) {
+                minTime = timeToRightWall;
                 nextWall = Wall::Right;
             }
         } else if (particle.vx < 0) {
             double timeToLeftWall = (particle.radius - particle.x) / particle.vx;
-            if (timeToLeftWall < timeToVerticalWall) {
-                timeToVerticalWall = timeToLeftWall;
+            if (timeToLeftWall < minTime) {
+                minTime = timeToLeftWall;
                 nextWall = Wall::Left;
             }
         }
 
         if (particle.vy > 0) {
             double timeToTopWall = (model.dimensionY - particle.radius - particle.y) / particle.vy;
-            if (timeToTopWall < timeToVerticalWall) {
-                timeToVerticalWall = timeToTopWall;
+            if (timeToTopWall < minTime) {
+                minTime = timeToTopWall;
                 nextWall = Wall::Top;
             }
         } else if (particle.vy < 0) {
             double timeToBottomWall = (particle.radius - particle.y) / particle.vy;
-            if (timeToBottomWall < timeToVerticalWall) {
-                timeToVerticalWall = timeToBottomWall;
+            if (timeToBottomWall < minTime) {
+                minTime = timeToBottomWall;
                 nextWall = Wall::Bottom;
             }
         }
 
         Event event = {};
         event.type = EventType::WallCollision;
-        event.time = timeToVerticalWall;
+        event.time = minTime + particle.t;
         event.wall = nextWall;
         return event;
     }
@@ -106,7 +104,7 @@ namespace edgas
                 event.otherParticle = j;
             }
         }
-        
+
         return event;
     }
 
@@ -143,8 +141,8 @@ namespace edgas
                 }
                 break;
             default:
-                std::cerr << "Unknown event type: " 
-                    << static_cast<int>(nextEvent.type) 
+                std::cerr << "Unknown event type: "
+                    << static_cast<int>(nextEvent.type)
                     << std::endl;
                 break;
         }
@@ -162,8 +160,6 @@ namespace edgas
 
         statisticsCollector.addWallCollision(nextEvent.wall);
 
-        model.globalTime = nextEvent.time;
-
         switch (nextEvent.wall) {
             case Wall::Left:
             case Wall::Right:
@@ -174,6 +170,7 @@ namespace edgas
                 particle.vy = -particle.vy;
                 break;
             default:
+                std::cerr << "Warning: invalid wall collision event\n";
                 break;
         }
     }
@@ -185,8 +182,15 @@ namespace edgas
         auto& nextEvent1 = events[i];
         auto& nextEvent2 = events[j];
 
+        if (nextEvent1.otherParticle != j || nextEvent2.otherParticle != i) {
+            std::cerr << "Warning: invalid particle collision event"
+                << std::endl;
+            statisticsCollector.addInvalidParticleCollision();
+            return;
+        }
+
         if (std::abs(nextEvent1.time - nextEvent2.time) > 1e-9) {
-            std::cerr << "Warning: invalid particle collision event" 
+            std::cerr << "Warning: invalid particle collision event"
                 << std::endl;
             statisticsCollector.addInvalidParticleCollision();
             return;
