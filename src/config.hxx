@@ -9,7 +9,7 @@ namespace edgas {
     struct Config {
         int particleCount;
         double particleRadius;
-        double particleMass;
+        double particleMass = 1.0;
         int dimensionX;
         int dimensionY;
 
