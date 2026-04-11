@@ -6,9 +6,12 @@
 #include <yaml-cpp/yaml.h>
 
 #include "config.hxx"
+#include "math.hxx"
 #include "simulator.hxx"
 #include "statistics_collector.hxx"
 
+
+using edgas::sqr;
 
 int main(int argc, char* argv[])
 {
@@ -33,7 +36,8 @@ int main(int argc, char* argv[])
     std::cout << "  dimension x: " << config->dimensionX << std::endl;
     std::cout << "  dimension y: " << config->dimensionY << std::endl;
 
-    edgas::Simulator simulator(*config);
+    edgas::Model model(*config);
+    edgas::Simulator simulator(model);
     std::cout << "simulator initialized successfully" << std::endl;
 
     while (true) {
@@ -48,6 +52,12 @@ int main(int argc, char* argv[])
             simulator.step();
         }
 
+        double total_energy = 0.0;
+        for (const auto& particle : model.particles) {
+            total_energy += 0.5 * particle.mass * (sqr(particle.vx) + sqr(particle.vy));
+        }
+        std::cout << "total energy: " << total_energy << std::endl;
+        
         const auto& stats = simulator.getStatistics();
         std::cout << "total particle collisions: " << stats.totalParticleCollisions << std::endl;
         std::cout << "total invalid collisions: " << stats.invalidParticleCollisions << std::endl;

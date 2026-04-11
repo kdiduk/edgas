@@ -16,7 +16,7 @@ namespace edgas
     class Simulator
     {
     public:
-        Simulator(const Config& config);
+        Simulator(Model& model);
 
         void step();
 

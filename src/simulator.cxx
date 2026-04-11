@@ -11,12 +11,12 @@
 
 namespace edgas
 {
-    Simulator::Simulator(const Config& config)
-        : model(config)
+    Simulator::Simulator(Model& model)
+        : model(model)
     {
         snapshotWriter.writeSnapshot(model);
 
-        events.resize(config.particleCount);
+        events.resize(model.nparticles);
         for (int i = 0; i < model.nparticles; ++i) {
             findNextEvent(i);
         }
