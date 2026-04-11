@@ -57,17 +57,17 @@ TEST(timeToParticleCollision,
     EXPECT_DOUBLE_EQ(time, std::numeric_limits<double>::infinity());
 }
 
-TEST(timeToParticleCollision,
-        particlesHaveDistinctLocalTimesAndShouldCollide) {
-    Particle p1(0.5);
-    p1.vx = 1; p1.t = 1.0;
+// TEST(timeToParticleCollision,
+//         particlesHaveDistinctLocalTimesAndShouldCollide) {
+//     Particle p1(0.5);
+//     p1.vx = 1; p1.t = 1.0;
 
-    Particle p2(0.5);
-    p2.x = 4; p2.vx = -1; p2.t = 2.0;
+//     Particle p2(0.5);
+//     p2.x = 4; p2.vx = -1; p2.t = 2.0;
 
-    double time = collisions::timeToParticleCollision(p1, p2);
-    EXPECT_DOUBLE_EQ(time, 3.0); // p2.t + 1.0
-}
+//     double time = collisions::timeToParticleCollision(p1, p2);
+//     EXPECT_DOUBLE_EQ(time, 3.0); // p2.t + 1.0
+// }
 
 
 TEST(collideParticles,

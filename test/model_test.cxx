@@ -95,15 +95,15 @@ TEST(ModelConstructor, InitializesGlobalTimeToZero) {
     EXPECT_DOUBLE_EQ(model.globalTime, 0.0);
 }
 
-TEST(ModelConstructor, InitializesParticleLocalTimeToZero) {
-    Config config{ .particleCount = 3, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 10, .dimensionY = 10 };
+// TEST(ModelConstructor, InitializesParticleLocalTimeToZero) {
+//     Config config{ .particleCount = 3, .particleRadius = 0.25, .particleMass = 1.0, .dimensionX = 10, .dimensionY = 10 };
 
-    Model model(config);
+//     Model model(config);
 
-    for (const auto& p : model.particles) {
-        EXPECT_DOUBLE_EQ(p.t, 0.0);
-    }
-}
+//     for (const auto& p : model.particles) {
+//         EXPECT_DOUBLE_EQ(p.t, 0.0);
+//     }
+// }
 
 TEST(initParticlesPositions, SingleParticleIsPlacedCorrectly) {
     std::vector<Particle> particles{ Particle(0.25) };

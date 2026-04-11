@@ -1,7 +1,10 @@
+#include <cassert>
+
 #include "simulator.hxx"
 #include "collisions.hxx"
 #include "config.hxx"
 #include "particle.hxx"
+
 #include <cmath>
 #include <iostream>
 
@@ -53,12 +56,14 @@ namespace edgas
         Wall nextWall = Wall::None;
         if (particle.vx > 0) {
             double timeToRightWall = (model.dimensionX - particle.radius - particle.x) / particle.vx;
+            assert(timeToRightWall >= 0);
             if (timeToRightWall < minTime) {
                 minTime = timeToRightWall;
                 nextWall = Wall::Right;
             }
         } else if (particle.vx < 0) {
             double timeToLeftWall = (particle.radius - particle.x) / particle.vx;
+            assert(timeToLeftWall >= 0);
             if (timeToLeftWall < minTime) {
                 minTime = timeToLeftWall;
                 nextWall = Wall::Left;
@@ -67,12 +72,14 @@ namespace edgas
 
         if (particle.vy > 0) {
             double timeToTopWall = (model.dimensionY - particle.radius - particle.y) / particle.vy;
+            assert(timeToTopWall >= 0);
             if (timeToTopWall < minTime) {
                 minTime = timeToTopWall;
                 nextWall = Wall::Top;
             }
         } else if (particle.vy < 0) {
             double timeToBottomWall = (particle.radius - particle.y) / particle.vy;
+            assert(timeToBottomWall >= 0);
             if (timeToBottomWall < minTime) {
                 minTime = timeToBottomWall;
                 nextWall = Wall::Bottom;
@@ -81,7 +88,7 @@ namespace edgas
 
         Event event = {};
         event.type = EventType::WallCollision;
-        event.time = minTime + particle.t;
+        event.time = minTime + model.globalTime;
         event.wall = nextWall;
         return event;
     }
@@ -100,10 +107,13 @@ namespace edgas
             const auto& otherParticle = model.particles[j];
             double timeToCollision = collisions::timeToParticleCollision(particle, otherParticle);
             if (timeToCollision < event.time) {
+                assert(timeToCollision >= 0);
                 event.time = timeToCollision;
                 event.otherParticle = j;
             }
         }
+
+        event.time += model.globalTime;
 
         return event;
     }
@@ -128,6 +138,16 @@ namespace edgas
     {
         int i = getNextEvent();
         const auto& nextEvent = events[i];
+        
+        assert(nextEvent.time >= model.globalTime);
+        assert(nextEvent.time < std::numeric_limits<double>::infinity());
+
+       for (auto& particle: model.particles) {
+            particle.x += particle.vx * (nextEvent.time - model.globalTime);
+            particle.y += particle.vy * (nextEvent.time - model.globalTime);
+        }
+        model.globalTime = nextEvent.time;
+
         switch (nextEvent.type) {
             case EventType::WallCollision:
                 processNextWallCollisionEvent(i);
@@ -152,11 +172,6 @@ namespace edgas
     {
         auto& particle = model.particles[i];
         auto& nextEvent = events[i];
-
-        model.globalTime = nextEvent.time;
-        particle.x += particle.vx * (nextEvent.time - particle.t);
-        particle.y += particle.vy * (nextEvent.time - particle.t);
-        particle.t = nextEvent.time;
 
         statisticsCollector.addWallCollision(nextEvent.wall);
 
@@ -195,14 +210,6 @@ namespace edgas
             statisticsCollector.addInvalidParticleCollision();
             return;
         }
-
-        model.globalTime = nextEvent1.time;
-        particle1.x += particle1.vx * (nextEvent1.time - particle1.t);
-        particle1.y += particle1.vy * (nextEvent1.time - particle1.t);
-        particle2.x += particle2.vx * (nextEvent2.time - particle2.t);
-        particle2.y += particle2.vy * (nextEvent2.time - particle2.t);
-        particle1.t = nextEvent1.time;
-        particle2.t = nextEvent2.time;
 
         collisions::collideParticles(particle1, particle2);
         statisticsCollector.addParticleCollision();

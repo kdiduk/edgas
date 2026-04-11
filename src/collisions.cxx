@@ -9,16 +9,8 @@ namespace edgas::collisions
 {
     double timeToParticleCollision(const Particle& p1, const Particle& p2)
     {
-        if (p1.t > p2.t) {
-            return timeToParticleCollision(p2, p1);
-        }
-
-        auto dt = p2.t - p1.t;
-        auto x1 = p1.x + p1.vx * dt;
-        auto y1 = p1.y + p1.vy * dt;
-
-        auto dx = p2.x - x1;
-        auto dy = p2.y - y1;
+        auto dx = p2.x - p1.x;
+        auto dy = p2.y - p1.y;
         auto dvx = p2.vx - p1.vx;
         auto dvy = p2.vy - p1.vy;
         auto dvr = dx * dvx + dy * dvy;
@@ -45,13 +37,12 @@ namespace edgas::collisions
         auto dd = std::sqrt(disc);
         auto delt = std::abs(-dvr - dd) / dvv;
 
-        return p2.t + delt;
+        return delt;
     }
 
 
     void collideParticles(Particle& p1, Particle& p2)
     {
-        assert(abs(p1.t - p2.t) < 1e-8); // Ensure particles are at the same local time.
         assert((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) <= (p1.radius + p2.radius) * (p1.radius + p2.radius) + 1e-8); // Ensure particles are colliding.
 
         const double dx = p2.x - p1.x;

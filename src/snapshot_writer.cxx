@@ -30,8 +30,7 @@ namespace edgas
         outFile << model.globalTime << '\n';
         for (const auto& particle : model.particles) {
             outFile << particle.x << '\t' << particle.y << '\t'
-                    << particle.vx << '\t' << particle.vy << '\t'
-                    << particle.t << "\n";
+                    << particle.vx << '\t' << particle.vy << "\n";
         }
         outFile.flush();
     }
