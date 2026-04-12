@@ -15,6 +15,11 @@ namespace edgas
         int totalParticleCollisions = 0;
         int invalidParticleCollisions = 0;
 
+        int getTotalEvents() const
+        {
+            return totalWallCollisions + totalParticleCollisions + invalidParticleCollisions;
+        }
+
         void addWallCollision(Wall wall)
         {
             totalWallCollisions++;

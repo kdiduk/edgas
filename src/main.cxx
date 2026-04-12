@@ -57,15 +57,16 @@ int main(int argc, char* argv[])
             total_energy += 0.5 * particle.mass * (sqr(particle.vx) + sqr(particle.vy));
         }
         std::cout << "total energy: " << total_energy << std::endl;
-        
+
         const auto& stats = simulator.getStatistics();
-        std::cout << "total particle collisions: " << stats.totalParticleCollisions << std::endl;
-        std::cout << "total invalid collisions: " << stats.invalidParticleCollisions << std::endl;
-        std::cout << "total wall collisions: " << stats.totalWallCollisions << std::endl;
-        std::cout << "  left wall collisions: " << stats.leftWallCollisions << std::endl;
-        std::cout << "  right wall collisions: " << stats.rightWallCollisions << std::endl;
-        std::cout << "  top wall collisions: " << stats.topWallCollisions << std::endl;
-        std::cout << "  bottom wall collisions: " << stats.bottomWallCollisions << std::endl;
+        std::cout << "total events: " << stats.getTotalEvents() << std::endl;
+        std::cout << " - particle collisions: " << stats.totalParticleCollisions << std::endl;
+        std::cout << "    - invalid collisions: " << stats.invalidParticleCollisions << std::endl;
+        std::cout << " - wall collisions: " << stats.totalWallCollisions << std::endl;
+        std::cout << "    - left wall: " << stats.leftWallCollisions << std::endl;
+        std::cout << "    - right wall: " << stats.rightWallCollisions << std::endl;
+        std::cout << "    - top wall: " << stats.topWallCollisions << std::endl;
+        std::cout << "    - bottom wall: " << stats.bottomWallCollisions << std::endl;
 
     }
     std::cout << "simulation completed successfully" << std::endl;

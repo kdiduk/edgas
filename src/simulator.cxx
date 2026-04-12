@@ -14,8 +14,6 @@ namespace edgas
     Simulator::Simulator(Model& model)
         : model(model)
     {
-        snapshotWriter.writeSnapshot(model);
-
         events.resize(model.nparticles);
         for (int i = 0; i < model.nparticles; ++i) {
             findNextEvent(i);
@@ -25,8 +23,6 @@ namespace edgas
     void Simulator::step()
     {
         processNextEvent();
-
-        snapshotWriter.writeSnapshot(model);
     }
 
     const StatisticsCollector& Simulator::getStatistics() const
@@ -43,8 +39,10 @@ namespace edgas
         events[i] = minEvent;
         if (minEvent.type == EventType::ParticleCollision) {
             int j = minEvent.otherParticle;
-            events[j] = minEvent;
-            events[j].otherParticle = i;
+            if (minEvent.time < events[j].time) {
+                events[j] = minEvent;
+                events[j].otherParticle = i;
+            }
         }
     }
 
@@ -55,34 +53,34 @@ namespace edgas
         double minTime = std::numeric_limits<double>::infinity();
         Wall nextWall = Wall::None;
         if (particle.vx > 0) {
-            double timeToRightWall = (model.dimensionX - particle.radius - particle.x) / particle.vx;
-            assert(timeToRightWall >= 0);
-            if (timeToRightWall < minTime) {
-                minTime = timeToRightWall;
-                nextWall = Wall::Right;
+                double timeToRightWall = (model.dimensionX - particle.radius - particle.x) / particle.vx;
+                assert(timeToRightWall >= 0);
+                if (timeToRightWall < minTime) {
+                    minTime = timeToRightWall;
+                    nextWall = Wall::Right;
             }
         } else if (particle.vx < 0) {
-            double timeToLeftWall = (particle.radius - particle.x) / particle.vx;
-            assert(timeToLeftWall >= 0);
-            if (timeToLeftWall < minTime) {
-                minTime = timeToLeftWall;
-                nextWall = Wall::Left;
+                double timeToLeftWall = (particle.radius - particle.x) / particle.vx;
+                assert(timeToLeftWall >= 0);
+                if (timeToLeftWall < minTime) {
+                    minTime = timeToLeftWall;
+                    nextWall = Wall::Left;
             }
         }
 
         if (particle.vy > 0) {
-            double timeToTopWall = (model.dimensionY - particle.radius - particle.y) / particle.vy;
-            assert(timeToTopWall >= 0);
-            if (timeToTopWall < minTime) {
-                minTime = timeToTopWall;
-                nextWall = Wall::Top;
+                double timeToTopWall = (model.dimensionY - particle.radius - particle.y) / particle.vy;
+                assert(timeToTopWall >= 0);
+                if (timeToTopWall < minTime) {
+                    minTime = timeToTopWall;
+                    nextWall = Wall::Top;
             }
         } else if (particle.vy < 0) {
-            double timeToBottomWall = (particle.radius - particle.y) / particle.vy;
-            assert(timeToBottomWall >= 0);
-            if (timeToBottomWall < minTime) {
-                minTime = timeToBottomWall;
-                nextWall = Wall::Bottom;
+                double timeToBottomWall = (particle.radius - particle.y) / particle.vy;
+                assert(timeToBottomWall >= 0);
+                if (timeToBottomWall < minTime) {
+                    minTime = timeToBottomWall;
+                    nextWall = Wall::Bottom;
             }
         }
 
@@ -151,20 +149,24 @@ namespace edgas
         switch (nextEvent.type) {
             case EventType::WallCollision:
                 processNextWallCollisionEvent(i);
-                findNextEvent(i);
+                events[i].time = std::numeric_limits<double>::infinity();
                 break;
-            case EventType::ParticleCollision: {
-                    int j = nextEvent.otherParticle;
-                    processNextParticleCollisionEvent(i, j);
-                    findNextEvent(i);
-                    findNextEvent(j);
-                }
+            case EventType::ParticleCollision:
+                processNextParticleCollisionEvent(i, nextEvent.otherParticle);
+                events[i].time = std::numeric_limits<double>::infinity();
+                events[nextEvent.otherParticle].time = std::numeric_limits<double>::infinity();
                 break;
             default:
                 std::cerr << "Unknown event type: "
                     << static_cast<int>(nextEvent.type)
                     << std::endl;
                 break;
+        }
+
+        // Since all the particles have moved (there is no local time for particles),
+        // we need to recalculate the next event for all particles.
+        for (int i = 0; i < model.nparticles; ++i) {
+            findNextEvent(i);
         }
     }
 

@@ -38,9 +38,8 @@ namespace edgas
         void processWallCollision(const Event& event);
         void processParticleCollision(const Event& event);
 
-        Model model;
+        Model& model;
         std::vector<Event> events;
-        SnapshotWriter snapshotWriter{"snapshots.txt"};
         StatisticsCollector statisticsCollector;
     };
 }
