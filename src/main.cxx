@@ -40,6 +40,9 @@ int main(int argc, char* argv[])
     edgas::Simulator simulator(model);
     std::cout << "simulator initialized successfully" << std::endl;
 
+    edgas::SnapshotWriter snapshotWriter("snapshot.txt");
+    snapshotWriter.writeSnapshot(model);
+
     while (true) {
         std::cout << "enter number of steps to simulate (or 0 to quit): ";
         int steps = 0;
@@ -51,6 +54,7 @@ int main(int argc, char* argv[])
         for (int i = 0; i < steps; i++) {
             simulator.step();
         }
+        snapshotWriter.writeSnapshot(model);
 
         double total_energy = 0.0;
         for (const auto& particle : model.particles) {
