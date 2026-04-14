@@ -19,6 +19,8 @@ namespace edgas
         std::span<Particle> particles;
         double globalTime = 0.0;
 
+        void moveToTime(double newTime);
+
         Model(const Config& config);
 
     protected:

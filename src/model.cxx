@@ -34,6 +34,21 @@ namespace edgas {
     }
 
 
+    void Model::moveToTime(double newTime)
+    {
+        assert(newTime >= globalTime && "New time must be greater than or equal to current time");
+
+        double dt = newTime - globalTime;
+
+        for (auto& p: particles) {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+        }
+
+        globalTime = newTime;
+    }
+
+
     void Model::initParticlesPositions(const int sizeX, const int sizeY, std::span<Particle> particles)
     {
         assert(particles.size() <= sizeX * sizeY 
