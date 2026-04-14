@@ -23,10 +23,10 @@ namespace edgas
         const StatisticsCollector& getStatistics() const;
 
     private:
-        void findNextEvent(int i);
+        void findNextEvent(int i, bool updateDependencies = false);
 
         Event findNextWallCollision(int i) const;
-        Event findNextParticleCollision(int i) const;
+        Event findNextParticleCollision(int i, bool updateDependencies = false);
 
         int getNextEvent() const;
 

@@ -30,10 +30,10 @@ namespace edgas
         return statisticsCollector;
     }
 
-    void Simulator::findNextEvent(int i)
+    void Simulator::findNextEvent(int i, bool updateDependencies)
     {
         Event wallCollisionEvent = findNextWallCollision(i);
-        Event particleCollisionEvent = findNextParticleCollision(i);
+        Event particleCollisionEvent = findNextParticleCollision(i, updateDependencies);
         Event minEvent = (wallCollisionEvent.time < particleCollisionEvent.time) ? wallCollisionEvent : particleCollisionEvent;
 
         events[i] = minEvent;
@@ -92,7 +92,7 @@ namespace edgas
     }
 
 
-    Event Simulator::findNextParticleCollision(int i) const
+    Event Simulator::findNextParticleCollision(int i, bool updateDependencies)
     {
         const auto& particle = model.particles[i];
 
@@ -101,6 +101,12 @@ namespace edgas
 
         for (int j = 0; j < model.nparticles; ++j) {
             if (i == j) continue;
+
+            if (updateDependencies) {
+                if (events[j].type == EventType::ParticleCollision && events[j].otherParticle == i) {
+                    findNextEvent(j);
+                }
+            }
 
             const auto& otherParticle = model.particles[j];
             double timeToCollision = collisions::timeToParticleCollision(particle, otherParticle);
@@ -136,25 +142,22 @@ namespace edgas
     {
         int i = getNextEvent();
         const auto& nextEvent = events[i];
-        
-        assert(nextEvent.time >= model.globalTime);
-        assert(nextEvent.time < std::numeric_limits<double>::infinity());
-
-       for (auto& particle: model.particles) {
-            particle.x += particle.vx * (nextEvent.time - model.globalTime);
-            particle.y += particle.vy * (nextEvent.time - model.globalTime);
-        }
-        model.globalTime = nextEvent.time;
 
         switch (nextEvent.type) {
             case EventType::WallCollision:
                 processNextWallCollisionEvent(i);
                 events[i].time = std::numeric_limits<double>::infinity();
+                findNextEvent(i, true);
                 break;
-            case EventType::ParticleCollision:
-                processNextParticleCollisionEvent(i, nextEvent.otherParticle);
-                events[i].time = std::numeric_limits<double>::infinity();
-                events[nextEvent.otherParticle].time = std::numeric_limits<double>::infinity();
+            case EventType::ParticleCollision: {
+                    int j = nextEvent.otherParticle;
+                    processNextParticleCollisionEvent(i, j);
+                    events[i].time = std::numeric_limits<double>::infinity();
+                    events[j].time = std::numeric_limits<double>::infinity();
+
+                    findNextEvent(i, true);
+                    findNextEvent(j, true);
+                }
                 break;
             default:
                 std::cerr << "Unknown event type: "
@@ -162,18 +165,15 @@ namespace edgas
                     << std::endl;
                 break;
         }
-
-        // Since all the particles have moved (there is no local time for particles),
-        // we need to recalculate the next event for all particles.
-        for (int i = 0; i < model.nparticles; ++i) {
-            findNextEvent(i);
-        }
     }
+
 
     void Simulator::processNextWallCollisionEvent(int i)
     {
         auto& particle = model.particles[i];
         auto& nextEvent = events[i];
+
+        model.moveToTime(nextEvent.time);
 
         statisticsCollector.addWallCollision(nextEvent.wall);
 
@@ -212,6 +212,8 @@ namespace edgas
             statisticsCollector.addInvalidParticleCollision();
             return;
         }
+
+        model.moveToTime(nextEvent1.time);
 
         collisions::collideParticles(particle1, particle2);
         statisticsCollector.addParticleCollision();
