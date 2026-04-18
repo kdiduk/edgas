@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 import sys
 
 
@@ -98,5 +101,32 @@ if __name__ == "__main__":
     print(f"timeline: {result['t']}")
     print(f"number of vx items: {len(result['vx'])}")
     print(f"number of vy items: {len(result['vy'])}")
+
+    vx = np.array(result["vx"])
+    vy = np.array(result["vy"])
+
+    # параметры распределения из данных
+    mu = np.mean(vx)
+    sigma = np.std(vx)
+
+    # диапазон для теоретической кривой
+    x = np.linspace(min(vx), max(vx), 200)
+
+    # Gaussian PDF
+    pdf = (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-(x-mu)**2/(2*sigma**2))
+
+    # гистограмма
+    plt.hist(vx, bins=50, density=True, alpha=0.5, label="simulation")
+
+    # теоретическая кривая
+    plt.plot(x, pdf, linewidth=2, label="Gaussian")
+
+    plt.title("vx distribution")
+    plt.xlabel("vx")
+    plt.ylabel("probability density")
+    plt.legend()
+
+    plt.savefig("histogram_vx.png")
+
 
 # EOF
