@@ -24,7 +24,7 @@ def read_velocities(file_path):
         if not line:
             print(f"Unable to read snapshot file {file_path}")
             return result
-        
+
         split_line = line.split()
         if len(split_line) != 1:
             print(f"Invalid format of snapshot file. First line in file: {line}")
@@ -32,7 +32,7 @@ def read_velocities(file_path):
         first_time = float(split_line[0])
         if abs(first_time) > 1.0e-10:
             print(f"First time in the snapshot file expected to be 0.0 but found {first_time}")
-        
+
         num_particles = 0
         # calculate number of particles by counting the lines in the file,
         # but skip the first snapshot
@@ -43,11 +43,11 @@ def read_velocities(file_path):
                 tt = float(line_split[0])
                 if tt <= 0:
                     print("Invalid time stamp encountered")
-                    return result    
+                    return result
                 timeline.append(tt)
                 break
             num_particles += 1
-        
+
         print(f"Number of particles: {num_particles}")
         result["nparticles"] = num_particles
 
@@ -62,13 +62,13 @@ def read_velocities(file_path):
                 if len(parts) < 4:
                     print("Invalid file format. Line encountered: " + line)
                     return result
-                
+
                 vx, vy = float(parts[2]), float(parts[3])
                 velocities_x.append(vx)
                 velocities_y.append(vy)
-            
+
             result["nsnapshots"] += 1
-            
+
             line = f.readline()
             if not line:
                 print("End of file reached")
@@ -77,17 +77,44 @@ def read_velocities(file_path):
             if len(split_line) != 1:
                 print("Invalid file format, line with time expected but found: " + line)
                 break
-            
+
             next_time = float(split_line[0])
             if next_time < timeline[-1]:
                 print(f"Invalid snapshot file format: encountered decscending time {next_time} after the timeline {timeline}")
                 return result
-            
+
             timeline.append(next_time)
-        
+
         result["valid"] = True
-        
+
     return result
+
+
+def plot_velocity_component_distribution(values: np.array, component_label: str):
+    # Prepare data of theoretical Gaussian chart
+    mean = np.mean(values)
+    print(f"v{component_label} mean = {mean}")
+
+    sigma = np.std(values)
+    print(f"v{component_label} std = {sigma}")
+
+    gaussian_x = np.linspace(min(values), max(values), 200)
+    gaussian_y = (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-(gaussian_x-mean)**2/(2*sigma**2))
+
+    plt.clf()
+
+    # Plot histogram of actual/collected values
+    plt.hist(values, bins=50, density=True, alpha=0.5, label="simulation")
+
+    # Plot theoretical Gaussian
+    plt.plot(gaussian_x, gaussian_y, linewidth=2, label="Gaussian")
+
+    plt.title(f"v{component_label} distribution")
+    plt.xlabel(f"v{component_label}")
+    plt.ylabel("probability density")
+    plt.legend()
+
+    plt.savefig(f"histogram_v{component_label}.png")
 
 
 if __name__ == "__main__":
@@ -102,31 +129,8 @@ if __name__ == "__main__":
     print(f"number of vx items: {len(result['vx'])}")
     print(f"number of vy items: {len(result['vy'])}")
 
-    vx = np.array(result["vx"])
-    vy = np.array(result["vy"])
-
-    # параметры распределения из данных
-    mu = np.mean(vx)
-    sigma = np.std(vx)
-
-    # диапазон для теоретической кривой
-    x = np.linspace(min(vx), max(vx), 200)
-
-    # Gaussian PDF
-    pdf = (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-(x-mu)**2/(2*sigma**2))
-
-    # гистограмма
-    plt.hist(vx, bins=50, density=True, alpha=0.5, label="simulation")
-
-    # теоретическая кривая
-    plt.plot(x, pdf, linewidth=2, label="Gaussian")
-
-    plt.title("vx distribution")
-    plt.xlabel("vx")
-    plt.ylabel("probability density")
-    plt.legend()
-
-    plt.savefig("histogram_vx.png")
+    plot_velocity_component_distribution(np.array(result["vx"]), "x")
+    plot_velocity_component_distribution(np.array(result["vy"]), "y")
 
 
 # EOF
