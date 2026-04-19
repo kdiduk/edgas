@@ -98,6 +98,8 @@ def plot_velocity_component_distribution(values: np.array, component_label: str)
     sigma = np.std(values)
     print(f"v{component_label} std = {sigma}")
 
+    print(f"v{component_label} min = {min(values)} and max = {max(values)}")
+
     gaussian_x = np.linspace(min(values), max(values), 200)
     gaussian_y = (1/(sigma*np.sqrt(2*np.pi))) * np.exp(-(gaussian_x-mean)**2/(2*sigma**2))
 
