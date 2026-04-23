@@ -119,6 +119,26 @@ def plot_velocity_component_distribution(values: np.array, component_label: str)
     plt.savefig(f"histogram_v{component_label}.png")
 
 
+def plot_velocity_distribution(vx: np.array, vy: np.array):
+    plt.clf()
+
+    vv = np.sqrt(vx**2 + vy**2)
+
+    plt.hist(vv, bins=50, density=True, alpha=0.5, label="simulation")
+
+    xx = np.mean(vv)
+    maxwell_x = np.linspace(min(vv), max(vv), 200)
+    maxwell_y = (np.pi / (2*xx)) * (maxwell_x / xx) * np.exp((-np.pi/4.0)*((maxwell_x/xx)**2))
+
+    plt.plot(maxwell_x, maxwell_y, linewidth=2, label="Maxwell")
+
+    plt.title("velocity distribution")
+    plt.xlabel("v")
+    plt.ylabel("probability density")
+    plt.legend()
+
+    plt.savefig("histogram_v.png")
+
 if __name__ == "__main__":
     if (len(sys.argv) != 2):
         print("Usage: python scripts/distributions.py <velocity_file>")
@@ -131,8 +151,11 @@ if __name__ == "__main__":
     print(f"number of vx items: {len(result['vx'])}")
     print(f"number of vy items: {len(result['vy'])}")
 
-    plot_velocity_component_distribution(np.array(result["vx"]), "x")
-    plot_velocity_component_distribution(np.array(result["vy"]), "y")
+    npvx = np.array(result["vx"])
+    npvy = np.array(result["vy"])
+    plot_velocity_component_distribution(npvx, "x")
+    plot_velocity_component_distribution(npvy, "y")
+    plot_velocity_distribution(npvx, npvy)
 
 
 # EOF
