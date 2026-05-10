@@ -13,7 +13,13 @@ endif()
 
 
 include(FetchContent)
-
+set(BOOST_INCLUDE_LIBRARIES heap)
+set(BOOST_ENABLE_CMAKE ON)
+FetchContent_Declare(
+    Boost
+    URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.xz
+)
+FetchContent_MakeAvailable(Boost)
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY  https://github.com/google/googletest.git
@@ -40,19 +46,21 @@ target_sources(edgas
     src/simulator.cxx
     src/snapshot_writer.cxx
     src/collisions.cxx
+    src/event_queue.cxx
 )
 
 enable_testing()
 
 add_executable(
   edgas_test
+  test/event_queue_test.cxx
   test/collisions_test.cxx
   test/model_test.cxx
   src/collisions.cxx
   src/model.cxx
 )
 
-target_link_libraries(edgas PUBLIC yaml-cpp::yaml-cpp)
+target_link_libraries(edgas PUBLIC Boost::heap yaml-cpp::yaml-cpp)
 
 target_compile_options(edgas PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
@@ -64,6 +72,7 @@ target_include_directories(edgas_test PUBLIC src)
 target_link_libraries(
   edgas_test
   GTest::gtest_main
+  Boost::heap
 )
 
 include(GoogleTest)
