@@ -57,10 +57,11 @@ add_executable(
   test/collisions_test.cxx
   test/model_test.cxx
   src/collisions.cxx
+  src/event_queue.cxx
   src/model.cxx
 )
 
-target_link_libraries(edgas PUBLIC Boost::heap yaml-cpp::yaml-cpp)
+target_link_libraries(edgas PRIVATE Boost::heap yaml-cpp::yaml-cpp)
 
 target_compile_options(edgas PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall -Wextra -Wpedantic>
@@ -71,6 +72,7 @@ target_include_directories(edgas_test PUBLIC src)
 
 target_link_libraries(
   edgas_test
+  PRIVATE
   GTest::gtest_main
   Boost::heap
 )

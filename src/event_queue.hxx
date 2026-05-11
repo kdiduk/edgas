@@ -12,6 +12,7 @@ class EventQueue final {
 public:
 
     explicit EventQueue(const std::vector<Event>& events);
+    ~EventQueue();
 
     void update(int i);
 

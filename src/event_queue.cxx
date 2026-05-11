@@ -46,6 +46,11 @@ namespace edgas {
         }
     }
 
+    EventQueue::~EventQueue()
+    {
+        
+    }
+
     void EventQueue::update(int i)
     {
         impl->heap.update(impl->handles[i]);
