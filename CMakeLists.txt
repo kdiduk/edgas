@@ -18,6 +18,7 @@ set(BOOST_ENABLE_CMAKE ON)
 FetchContent_Declare(
     Boost
     URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(Boost)
 FetchContent_Declare(
