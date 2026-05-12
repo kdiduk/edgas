@@ -1,5 +1,7 @@
+#include <chrono>
 #include <filesystem>
 #include <iostream>
+#include <ostream>
 #include <string>
 #include <cstdlib>
 
@@ -51,9 +53,14 @@ int main(int argc, char* argv[])
             break;
         }
 
+        using clock = std::chrono::steady_clock;
+
+        auto time_start = clock::now();
         for (int i = 0; i < steps; i++) {
             simulator.step();
         }
+        auto time_end = clock::now();
+
         snapshotWriter.writeSnapshot(model);
 
         double total_energy = 0.0;
@@ -64,6 +71,12 @@ int main(int argc, char* argv[])
 
         const auto& stats = simulator.getStatistics();
         std::cout << "total events: " << stats.getTotalEvents() << std::endl;
+
+        std::ostringstream oss;
+        auto duration_sec = std::chrono::duration<double>(time_end - time_start);
+        oss << std::fixed << std::setprecision(4) << duration_sec.count();
+        std::cout << "time elapsed: " << oss.str() << "sec" << std::endl;
+        
         std::cout << " - particle collisions: " << stats.totalParticleCollisions << std::endl;
         std::cout << "    - invalid collisions: " << stats.invalidParticleCollisions << std::endl;
         std::cout << " - wall collisions: " << stats.totalWallCollisions << std::endl;
