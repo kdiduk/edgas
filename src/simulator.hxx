@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "event.hxx"
+#include "event_queue.hxx"
 #include "model.hxx"
 #include "particle.hxx"
 #include "snapshot_writer.hxx"
@@ -40,6 +41,7 @@ namespace edgas
 
         Model& model;
         std::vector<Event> events;
+        EventQueue event_queue;
         StatisticsCollector statisticsCollector;
     };
 }

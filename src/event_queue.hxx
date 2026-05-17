@@ -14,7 +14,7 @@ public:
     explicit EventQueue(const std::vector<Event>& events);
     ~EventQueue();
 
-    void update(int i);
+    void update(int i, double time);
 
     int top() const;
 

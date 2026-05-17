@@ -1,64 +1,57 @@
 #include "event_queue.hxx"
 
 #include <boost/heap/binomial_heap.hpp>
-#include <functional>
 
 
 namespace edgas {
 
+    struct QueueEntry {
+        double time;
+        int index;
+    };
+
     struct Comparator {
-        const std::vector<Event>& _events;
-
-        explicit Comparator(const std::vector<Event>& events) : _events(events) {}
-
-        bool operator()(size_t lhs, size_t rhs) const
+        bool operator()(const QueueEntry& lhs, const QueueEntry& rhs) const
         {
-            return _events[lhs].time > _events[rhs].time;
+            // min-heap on time; tie-break on index for determinism
+            if (lhs.time != rhs.time) return lhs.time > rhs.time;
+            return lhs.index > rhs.index;
         }
     };
 
-    typedef boost::heap::binomial_heap<size_t, boost::heap::compare<Comparator>> Heap;
+    typedef boost::heap::binomial_heap<QueueEntry, boost::heap::compare<Comparator>> Heap;
 
     struct EventQueue::Impl {
-
-        Comparator comparator;
         Heap heap;
         std::vector<Heap::handle_type> handles;
-
-        explicit Impl(const std::vector<Event>& events)
-            :   comparator{events},
-                heap{comparator}
-        {
-
-        }
-
     };
 
     EventQueue::EventQueue(const std::vector<Event>& events)
     {
-        impl = std::make_unique<EventQueue::Impl>(events);
+        impl = std::make_unique<EventQueue::Impl>();
 
         impl->handles.reserve(events.size());
         for (size_t i = 0; i < events.size(); i++) {
             impl->handles.push_back(
-                impl->heap.push(i)
+                impl->heap.push(QueueEntry{events[i].time, static_cast<int>(i)})
             );
         }
     }
 
     EventQueue::~EventQueue()
     {
-        
+
     }
 
-    void EventQueue::update(int i)
+    void EventQueue::update(int i, double time)
     {
+        (*impl->handles[i]).time = time;
         impl->heap.update(impl->handles[i]);
     }
 
     int EventQueue::top() const
     {
-        return static_cast<int>(impl->heap.top());
+        return impl->heap.top().index;
     }
 
 } // namespace edgas

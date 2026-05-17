@@ -12,9 +12,11 @@
 namespace edgas
 {
     Simulator::Simulator(Model& model)
-        : model(model)
+        : model(model),
+          events(static_cast<size_t>(model.nparticles), Event{}),
+          event_queue(events)
     {
-        events.resize(model.nparticles);
+        assert(events.size() == model.nparticles);
         for (int i = 0; i < model.nparticles; ++i) {
             findNextEvent(i);
         }
@@ -37,11 +39,14 @@ namespace edgas
         Event minEvent = (wallCollisionEvent.time < particleCollisionEvent.time) ? wallCollisionEvent : particleCollisionEvent;
 
         events[i] = minEvent;
+        event_queue.update(i, events[i].time);
+
         if (minEvent.type == EventType::ParticleCollision) {
             int j = minEvent.otherParticle;
             if (minEvent.time < events[j].time) {
                 events[j] = minEvent;
                 events[j].otherParticle = i;
+                event_queue.update(j, events[j].time);
             }
         }
     }
@@ -125,17 +130,18 @@ namespace edgas
 
     int Simulator::getNextEvent() const
     {
-        int nextEventIndex = -1;
-        double minTime = std::numeric_limits<double>::infinity();
+        // int nextEventIndex = -1;
+        // double minTime = std::numeric_limits<double>::infinity();
 
-        for (int i = 0; i < model.nparticles; ++i) {
-            if (events[i].time < minTime) {
-                minTime = events[i].time;
-                nextEventIndex = i;
-            }
-        }
+        // for (int i = 0; i < model.nparticles; ++i) {
+        //     if (events[i].time < minTime) {
+        //         minTime = events[i].time;
+        //         nextEventIndex = i;
+        //     }
+        // }
 
-        return nextEventIndex;
+        // return nextEventIndex;
+        return event_queue.top();
     }
 
     void Simulator::processNextEvent()
@@ -147,13 +153,16 @@ namespace edgas
             case EventType::WallCollision:
                 processNextWallCollisionEvent(i);
                 events[i].time = std::numeric_limits<double>::infinity();
+                event_queue.update(i, events[i].time);
                 findNextEvent(i, true);
                 break;
             case EventType::ParticleCollision: {
                     int j = nextEvent.otherParticle;
                     processNextParticleCollisionEvent(i, j);
                     events[i].time = std::numeric_limits<double>::infinity();
+                    event_queue.update(i, events[i].time);
                     events[j].time = std::numeric_limits<double>::infinity();
+                    event_queue.update(j, events[j].time);
 
                     findNextEvent(i, true);
                     findNextEvent(j, true);
