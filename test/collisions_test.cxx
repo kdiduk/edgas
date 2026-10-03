@@ -1,3 +1,4 @@
+#include <cmath>
 #include <gtest/gtest.h>
 
 #include "collisions.hxx"
@@ -96,7 +97,7 @@ TEST(collideParticles,
     p1.vx = 1; p1.vy = 1;
 
     Particle p2(0.5);
-    p2.x = sin(M_PI / 4); p2.y = sin(M_PI / 4); p2.vx = -1; p2.vy = -1;
+    p2.x = std::sin(M_PI / 4); p2.y = sin(M_PI / 4); p2.vx = -1; p2.vy = -1;
 
     collisions::collideParticles(p1, p2);
 
