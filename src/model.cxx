@@ -51,7 +51,7 @@ namespace edgas {
 
     void Model::initParticlesPositions(const int sizeX, const int sizeY, std::span<Particle> particles)
     {
-        assert(particles.size() <= sizeX * sizeY 
+        assert(static_cast<int>(particles.size()) <= sizeX * sizeY 
             && "Container must be large enough to fit all particles without overlap");
 
         std::vector<int> cells(sizeX * sizeY);

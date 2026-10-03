@@ -16,7 +16,7 @@ namespace edgas
           events(static_cast<size_t>(model.nparticles), Event{}),
           event_queue(events)
     {
-        assert(events.size() == model.nparticles);
+        assert(static_cast<int>(events.size()) == model.nparticles);
         for (int i = 0; i < model.nparticles; ++i) {
             findNextEvent(i);
         }
