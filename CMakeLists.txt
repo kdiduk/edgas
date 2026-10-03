@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.23)
+cmake_minimum_required(VERSION 3.25)
 
 project(edgas)
 
@@ -17,6 +17,7 @@ set(BOOST_INCLUDE_LIBRARIES heap)
 set(BOOST_ENABLE_CMAKE ON)
 FetchContent_Declare(
     Boost
+    SYSTEM
     URL https://github.com/boostorg/boost/releases/download/boost-1.85.0/boost-1.85.0-cmake.tar.xz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
